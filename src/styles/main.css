@@ -2729,3 +2729,50 @@ kbd {
   .studio-chords { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .studio-chord { min-height: 40px; }
 }
+
+/* Letras del teclado del ordenador sobre las teclas y pads */
+.studio-key__key {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 1px 3px;
+  border: 1px solid rgba(23, 21, 18, 0.16);
+  border-radius: 2px;
+  background: rgba(255, 253, 246, 0.62);
+  color: #7a7366;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.studio-key.key-black .studio-key__key {
+  top: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #e4ded2;
+}
+.studio-key.is-chord.key-white .studio-key__key { color: var(--ink); background: rgba(255,253,246,0.7); }
+.studio-key.is-chord.key-black .studio-key__key { color: var(--cream); }
+.studio-key.is-active .studio-key__key {
+  background: rgba(255, 253, 246, 0.8);
+  border-color: rgba(23, 21, 18, 0.35);
+  color: var(--ink);
+}
+.studio-key.is-recorded::before { top: 21px; }
+.studio-key.key-black.is-recorded::before { top: 18px; }
+
+.studio-pad__num {
+  display: inline-block;
+  min-width: 16px;
+  padding: 1px 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  background: var(--paper);
+  text-align: center;
+  line-height: 1.1;
+}
+.studio-pad.is-pressed .studio-pad__num { background: var(--cream); border-color: var(--ink); }

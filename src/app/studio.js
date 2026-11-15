@@ -19,6 +19,18 @@ import { uid } from './storage.js';
 
 const STEP = 0.25;
 const LENGTHS = [1, 2, 4, 8];
+
+/** Teclas del ordenador para las dos octavas visibles. */
+const NOTE_KEY_OFFSETS = [
+  ['z', 0], ['s', 1], ['x', 2], ['d', 3], ['c', 4], ['v', 5],
+  ['g', 6], ['b', 7], ['h', 8], ['n', 9], ['j', 10], ['m', 11],
+  ['q', 12], ['2', 13], ['w', 14], ['3', 15], ['e', 16], ['r', 17],
+  ['5', 18], ['t', 19], ['6', 20], ['y', 21], ['7', 22], ['u', 23],
+];
+const KEY_BY_OFFSET = new Map(NOTE_KEY_OFFSETS.map(([key, offset]) => [offset, key]));
+const OFFSET_BY_KEY = new Map(NOTE_KEY_OFFSETS);
+const PAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+const PAD_INDEX_BY_KEY = new Map(PAD_KEYS.map((key, index) => [key, index]));
 const CATEGORY_ORDER = ['ritmos', 'bajos', 'armonias', 'texturas'];
 const q = (v) => Math.round(v / STEP) * STEP;
 const categoryOf = (id) => CATEGORY_BY_ID[id] || CATEGORY_BY_ID.armonias;
@@ -86,6 +98,7 @@ export async function openStudio({ player, album, bpm, onSaved }) {
     audioBuffers: new Map(),
     clickBuffer: null,
     pressedTimers: new Set(),
+    computerKeys: new Set(),
     success: false,
     saving: false,
     savedRecipe: null,
@@ -497,8 +510,11 @@ export async function openStudio({ player, album, bpm, onSaved }) {
         const left = white ? wi * W : wi * W - W * 0.32;
         const width = white ? W : W * 0.64;
         const label = NOTE_NAMES_FLAT[((midi % 12) + 12) % 12];
-        html += `<button class="${cls}" type="button" data-midi="${midi}" aria-label="${esc(midiName(midi))}"
-          title="${esc(midiName(midi))}" style="left:${left}%;width:${width}%">
+        const keyHint = KEY_BY_OFFSET.get(midi - state.octaveStart) || '';
+        const hintText = keyHint ? ` (tecla ${keyHint.toUpperCase()})` : '';
+        html += `<button class="${cls}" type="button" data-midi="${midi}" aria-label="${esc(midiName(midi))}${hintText}"
+          title="${esc(midiName(midi))}${hintText}" style="left:${left}%;width:${width}%">
+          ${keyHint ? `<span class="studio-key__key">${esc(keyHint.toUpperCase())}</span>` : ''}
           ${white ? `<span class="studio-key__label">${esc(label)}</span>` : `<span class="studio-key__label studio-key__label--black">${esc(label)}</span>`}
         </button>`;
         if (white) wi++;
@@ -509,7 +525,7 @@ export async function openStudio({ player, album, bpm, onSaved }) {
         <button class="icon-btn icon-btn--square" type="button" data-oct="-1" aria-label="Octava más grave">${icon('chev-left')}</button>
         <span class="studio-octave__label">${esc(midiName(state.octaveStart))}–${esc(midiName(state.octaveStart + 23))}</span>
         <button class="icon-btn icon-btn--square" type="button" data-oct="1" aria-label="Octava más aguda">${icon('chev-right')}</button>
-        <span class="studio-octave__hint">Las notas de Re menor llevan un punto</span>
+        <span class="studio-octave__hint">Punto = Re menor · letras = teclado del ordenador</span>
       </div>
       <div class="studio-piano" id="studio-piano" role="group" aria-label="Teclado de dos octavas">${html}</div>`;
   }
@@ -518,12 +534,15 @@ export async function openStudio({ player, album, bpm, onSaved }) {
     const pads = inst().pads || [];
     return `
       <div class="studio-pads ${pads.length === 1 ? 'is-single' : ''}" role="group" aria-label="Pads de percusión">
-        ${pads.map((p, i) => `<button class="studio-pad" type="button" data-pad="${p.id}" aria-label="${esc(p.name)}">
-          <span class="studio-pad__num">${i + 1}</span>
-          <span class="studio-pad__name">${esc(p.name)}</span>
-        </button>`).join('')}
+        ${pads.map((p, i) => {
+          const key = PAD_KEYS[i] || '';
+          return `<button class="studio-pad" type="button" data-pad="${p.id}" aria-label="${esc(p.name)}${key ? ` (tecla ${key})` : ''}">
+            <span class="studio-pad__num">${esc(key)}</span>
+            <span class="studio-pad__name">${esc(p.name)}</span>
+          </button>`;
+        }).join('')}
       </div>
-      <p class="studio-hint studio-pad-hint">Toca los pads en el bucle. Cada golpe es una pieza del ritmo.</p>`;
+      <p class="studio-hint studio-pad-hint">Toca los pads en el bucle. Cada golpe es una pieza del ritmo. También con las teclas 1–0.</p>`;
   }
 
   function instrumentAreaHtml() {
@@ -574,7 +593,7 @@ export async function openStudio({ player, album, bpm, onSaved }) {
   function buildBody() {
     return `
       <div class="studio">
-        <p class="studio-lede">Elige un instrumento, toca y graba un bucle. Lo que guardes se queda en la biblioteca de <strong>${esc(state.album.name || 'este álbum')}</strong>.</p>
+        <p class="studio-lede">Toca con el ratón, el dedo o el teclado y graba un bucle. Lo que guardes queda en la biblioteca de <strong>${esc(state.album.name || 'este álbum')}</strong>.</p>
         <div class="studio-families" role="tablist" aria-label="Familias de instrumentos">${familyTabsHtml()}</div>
         <div class="studio-instruments" role="group" aria-label="Instrumentos">${instrumentsHtml()}</div>
         ${transportHtml()}
@@ -682,9 +701,11 @@ export async function openStudio({ player, album, bpm, onSaved }) {
       ph.hidden = false;
       ph.style.left = '0%';
       if (count) {
-        count.hidden = false;
-        const remaining = Math.max(1, Math.ceil((state.loopStart - now) * (state.bpm / 60)));
-        count.textContent = String(Math.min(4, remaining));
+        count.hidden = !state.recording;
+        if (state.recording) {
+          const remaining = Math.max(1, Math.ceil((state.loopStart - now) * (state.bpm / 60)));
+          count.textContent = String(Math.min(4, remaining));
+        }
       }
       return;
     }
@@ -788,6 +809,7 @@ export async function openStudio({ player, album, bpm, onSaved }) {
   function stopForChange() {
     stopLoop({ finalize: true });
     endAllPointers();
+    state.computerKeys.clear();
   }
 
   function setFamily(familyId) {
@@ -1050,6 +1072,14 @@ export async function openStudio({ player, album, bpm, onSaved }) {
   function onKeyDown(e) {
     if (!state.alive) return;
     if (isTypingTarget(e.target)) return;
+    if (e.repeat) return;
+    const key = String(e.key).toLowerCase();
+    // ⇧R graba; R sigue siendo una nota del piano.
+    if (e.shiftKey && key === 'r') {
+      e.preventDefault();
+      toggleRecord();
+      return;
+    }
     const onButton = e.target.closest?.('button');
     if (e.code === 'Space') {
       if (onButton) return;
@@ -1057,10 +1087,37 @@ export async function openStudio({ player, album, bpm, onSaved }) {
       togglePlay();
       return;
     }
-    if (e.key.toLowerCase() === 'r') {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+    if (inst().kind === 'notes') {
+      const offset = OFFSET_BY_KEY.get(key);
+      if (offset === undefined) return;
       e.preventDefault();
-      toggleRecord();
+      if (state.computerKeys.has(key)) return;
+      state.computerKeys.add(key);
+      const midi = state.octaveStart + offset;
+      startKey(midi, `kbd:${key}`, $(`.studio-key[data-midi="${midi}"]`, state.body));
+      return;
     }
+    if (inst().kind === 'pads') {
+      const index = PAD_INDEX_BY_KEY.get(key);
+      if (index === undefined) return;
+      const pad = (inst().pads || [])[index];
+      if (!pad) return;
+      e.preventDefault();
+      playPad(pad.id, 0.9);
+    }
+  }
+
+  function onKeyUp(e) {
+    const key = String(e.key).toLowerCase();
+    if (!state.computerKeys.has(key)) return;
+    state.computerKeys.delete(key);
+    endPointer(`kbd:${key}`);
+  }
+
+  function onWindowBlur() {
+    endAllPointers();
+    state.computerKeys.clear();
   }
 
   function animate() {
@@ -1092,6 +1149,7 @@ export async function openStudio({ player, album, bpm, onSaved }) {
       for (const t of state.pressedTimers) clearTimeout(t);
       cancelAnimationFrame(state.raf);
       bus.abort();
+      state.computerKeys.clear();
       stopAllSources();
       for (const item of state.pointers.values()) {
         for (const el of item.keys) el.classList.remove('is-active');
@@ -1114,6 +1172,8 @@ export async function openStudio({ player, album, bpm, onSaved }) {
   window.addEventListener('pointerup', onWindowPointerUp, { signal: bus.signal });
   window.addEventListener('pointercancel', onWindowPointerCancel, { signal: bus.signal });
   document.addEventListener('keydown', onKeyDown, { signal: bus.signal });
+  document.addEventListener('keyup', onKeyUp, { signal: bus.signal });
+  window.addEventListener('blur', onWindowBlur, { signal: bus.signal });
 
   renderLoopView();
   updateStudioUI();

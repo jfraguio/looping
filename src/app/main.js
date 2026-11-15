@@ -1411,7 +1411,7 @@ function openHelpModal() {
         </div>
         <div class="help-step">
           <span class="help-step__num">4</span>
-          <div><h3>Fabrica tu propio sonido</h3><p>El botón <strong>Teclado</strong>, junto a Sorpréndeme, abre un estudio: elige instrumento, toca teclas o pads, escucha acordes de Re menor, graba un bucle y guárdalo en una sección. Aparecerá en la biblioteca de este álbum y viajará con el proyecto.</p></div>
+          <div><h3>Fabrica tu propio sonido</h3><p>El botón <strong>Teclado</strong>, junto a Sorpréndeme, abre un estudio: elige instrumento, toca teclas o pads con el ratón, el dedo o el teclado del ordenador, escucha acordes de Re menor, graba un bucle y guárdalo en una sección. Aparecerá en la biblioteca de este álbum y viajará con el proyecto.</p></div>
         </div>
       </div>
       <div class="help-shortcuts">
@@ -1424,7 +1424,7 @@ function openHelpModal() {
         <div><span>Exportar</span><kbd>⌘/Ctrl E</kbd></div>
         <div><span>Guardar proyecto</span><kbd>⌘/Ctrl S</kbd></div>
       </div>
-      <p class="help-note"><strong>Si un sonido dura menos que el bucle</strong>, selecciónalo y pulsa <strong>Duplicar</strong> para repetirlo en el resto de la línea. En el teclado, <strong>espacio</strong> escucha el bucle y <strong>R</strong> empieza o para la grabación. Los sonidos propios se guardan en el proyecto del álbum; un álbum nuevo empieza solo con el catálogo.</p>`,
+      <p class="help-note"><strong>Si un sonido dura menos que el bucle</strong>, selecciónalo y pulsa <strong>Duplicar</strong> para repetirlo en el resto de la línea. En el teclado, las letras <strong>Z–M</strong> y <strong>Q–U</strong> tocan las dos octavas, los números <strong>1–0</strong> tocan los pads, <strong>espacio</strong> escucha el bucle y <strong>⇧R</strong> empieza o para la grabación. Los sonidos propios se guardan en el proyecto del álbum; un álbum nuevo empieza solo con el catálogo.</p>`,
     footer: '<span class="spacer"></span><button class="btn btn--dark" type="button" data-close-help>Entendido</button>',
   });
   api.foot.querySelector('[data-close-help]').addEventListener('click', () => api.close());
