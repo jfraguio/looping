@@ -1,12 +1,23 @@
 # Looping
 
+**Web:** <https://fraguio.com/looping/> · <https://jfraguio.github.io/looping/>
+
 **Máquina de bases de hip hop en el navegador.** Elige sonidos, colócalos en capas, escucha el bucle cambiar en directo y expórtalo en MP3 o WAV. Sin cuentas, sin servidor y sin samples: cada sonido se sintetiza en tu equipo.
 
 ![Looping](assets/preview.png)
 
 > Una vuelta de tuerca a la idea de [sen](https://github.com/jfraguio/sen): misma obsesión por el sonido y el detalle, otra piel y otro propósito.
 
-## Arrancar
+## Publicado
+
+La aplicación está publicada con **GitHub Pages** desde la rama `main`, carpeta raíz:
+
+- <https://fraguio.com/looping/>
+- <https://jfraguio.github.io/looping/> (redirige al dominio anterior)
+
+Cada push a `main` publica una versión nueva automáticamente.
+
+## Arrancar en local
 
 No hay que compilar. Desde la raíz del repositorio:
 
@@ -22,7 +33,7 @@ npm start
 
 Abre **<http://127.0.0.1:4174/>**. No abras `index.html` con `file://`: los módulos ES y el audio necesitan un servidor.
 
-Para publicar en GitHub Pages: **Settings → Pages → Deploy from a branch → `main` → `/ (root)`**. El proyecto ya incluye `.nojekyll` y todas las rutas son relativas, así que funciona en la raíz de un dominio o en `usuario.github.io/repositorio/`.
+El proyecto incluye `.nojekyll` y todas las rutas son relativas, así que funciona en la raíz de un dominio o en un subdirectorio (`usuario.github.io/repositorio/`).
 
 ## Cómo se usa
 
