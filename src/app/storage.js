@@ -6,6 +6,7 @@
 
 import { SOUND_BY_ID, SOUNDS } from '../audio/catalog.js';
 import { loopUnitsFor } from '../audio/engine.js';
+import { sanitizeCustomRecipe } from '../audio/studio.js';
 
 export const STORAGE_KEY = 'looping.v1';
 export const APP_ID = 'looping';
@@ -39,6 +40,7 @@ export function emptyAlbum(name = 'Sin título') {
     id: uid('al'),
     name,
     tracks: [emptyTrack('Tema 1')],
+    customSounds: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
@@ -86,7 +88,8 @@ function clampVolume(v) {
 }
 
 /** Limpia una pista: sonidos válidos, sin solapes y con capas razonables. */
-export function sanitizeTrack(raw, fallbackName = 'Tema') {
+export function sanitizeTrack(raw, fallbackName = 'Tema', extraBeats = null) {
+  const beatsOf = (id) => extraBeats?.get(id) ?? SOUND_BY_ID[id]?.beats;
   const bpm = Math.max(55, Math.min(120, Math.round(Number(raw?.bpm) || 84)));
   const track = {
     id: typeof raw?.id === 'string' && raw.id ? raw.id : uid('tr'),
@@ -107,7 +110,7 @@ export function sanitizeTrack(raw, fallbackName = 'Tema') {
     };
     const clips = Array.isArray(l?.clips) ? l.clips : [];
     const sorted = clips
-      .filter((c) => c && SOUND_BY_ID[c.soundId])
+      .filter((c) => c && beatsOf(c.soundId))
       .map((c) => ({
         id: typeof c.id === 'string' && c.id ? c.id : uid('cl'),
         soundId: c.soundId,
@@ -116,7 +119,7 @@ export function sanitizeTrack(raw, fallbackName = 'Tema') {
       .sort((a, b) => a.start - b.start);
     let lastEnd = -1;
     for (const c of sorted) {
-      const beats = SOUND_BY_ID[c.soundId].beats;
+      const beats = beatsOf(c.soundId);
       if (c.start < lastEnd) continue;
       layer.clips.push(c);
       lastEnd = c.start + beats;
@@ -132,11 +135,21 @@ export function sanitizeAlbum(raw, fallbackName = 'Álbum') {
     id: typeof raw?.id === 'string' && raw.id ? raw.id : uid('al'),
     name: typeof raw?.name === 'string' && raw.name.trim() ? raw.name.slice(0, 80) : fallbackName,
     tracks: [],
+    customSounds: [],
     createdAt: Number(raw?.createdAt) || Date.now(),
     updatedAt: Number(raw?.updatedAt) || Date.now(),
   };
+  const seen = new Set();
+  const customs = Array.isArray(raw?.customSounds) ? raw.customSounds.slice(0, 80) : [];
+  for (const c of customs) {
+    const recipe = sanitizeCustomRecipe(c);
+    if (!recipe || seen.has(recipe.id)) continue;
+    seen.add(recipe.id);
+    album.customSounds.push(recipe);
+  }
+  const customBeats = new Map(album.customSounds.map((c) => [c.id, c.beats]));
   const tracks = Array.isArray(raw?.tracks) ? raw.tracks.slice(0, 40) : [];
-  for (const t of tracks) album.tracks.push(sanitizeTrack(t, `Tema ${album.tracks.length + 1}`));
+  for (const t of tracks) album.tracks.push(sanitizeTrack(t, `Tema ${album.tracks.length + 1}`, customBeats));
   if (!album.tracks.length) album.tracks.push(emptyTrack('Tema 1'));
   return album;
 }
@@ -246,7 +259,28 @@ export function duplicateAlbum(album, name) {
   copy.createdAt = Date.now();
   copy.updatedAt = Date.now();
   copy.tracks = copy.tracks.map((t) => duplicateTrack(t, t.name));
+  copy.customSounds = remapCustomSounds(copy.customSounds, copy.tracks);
   return copy;
+}
+
+/** Da IDs nuevos a los sonidos propios y actualiza los clips que los usan. */
+function remapCustomSounds(recipes, tracks) {
+  const map = new Map();
+  const out = [];
+  for (const r of Array.isArray(recipes) ? recipes : []) {
+    const next = sanitizeCustomRecipe({ ...r, id: uid('cs') });
+    if (!next) continue;
+    map.set(r.id, next.id);
+    out.push(next);
+  }
+  for (const t of tracks) {
+    for (const l of t.layers) {
+      for (const c of l.clips) {
+        if (map.has(c.soundId)) c.soundId = map.get(c.soundId);
+      }
+    }
+  }
+  return out;
 }
 
 /** Exporta todo el estado como archivo portátil. */
@@ -274,6 +308,7 @@ export function importFile(raw) {
       t.layers = t.layers.map((l) => ({ ...l, id: uid('ly'), clips: l.clips.map((c) => ({ ...c, id: uid('cl') })) }));
       return t;
     });
+    album.customSounds = remapCustomSounds(album.customSounds, album.tracks);
     out.push(album);
   }
   if (!out.length) throw new Error('No se encontró ningún álbum con temas.');

@@ -25,6 +25,7 @@
     <svg class="sprite" aria-hidden="true" focusable="false">
       <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.4v13.2a.9.9 0 0 0 1.36.77l10.5-6.6a.9.9 0 0 0 0-1.54L9.36 4.63A.9.9 0 0 0 8 5.4Z" fill="currentColor" stroke="none"/></symbol>
       <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6.4" y="5" width="4.1" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="13.5" y="5" width="4.1" height="14" rx="1" fill="currentColor" stroke="none"/></symbol>
+      <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="1.8" fill="currentColor" stroke="none"/></symbol>
       <symbol id="i-restart" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4.6h4.6"/></symbol>
       <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
       <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
@@ -38,6 +39,7 @@
       <symbol id="i-dice" viewBox="0 0 24 24"><path d="m12 3 1.5 5.3L19 10l-5.5 1.7L12 17l-1.5-5.3L5 10l5.5-1.7L12 3Z"/><path d="m18.5 15 .7 2.3L21.5 18l-2.3.7-.7 2.3-.7-2.3L15.5 18l2.3-.7.7-2.3Z"/></symbol>
       <symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18 6.5a7.8 7.8 0 0 1 0 11"/></symbol>
       <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z"/><path d="m16 10 4 4M20 10l-4 4"/></symbol>
+      <symbol id="i-keys" viewBox="0 0 24 24"><rect x="3.2" y="5" width="17.6" height="14" rx="1.4"/><path d="M8.1 5v8.6M12 5v8.6M15.9 5v8.6"/><path d="M5.7 14h1.8v3.8H5.7zM10.2 14h1.8v3.8h-1.8zM14.7 14h1.8v3.8h-1.8z" fill="currentColor" stroke="none"/></symbol>
       <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4.5 13v-1a7.5 7.5 0 0 1 15 0v1"/><path d="M4.5 13.5h2.2a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1v-5ZM19.5 13.5h-2.2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1.2a1 1 0 0 0 1-1v-5Z"/></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
       <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="m6 9.5 6 6 6-6"/></symbol>
@@ -118,11 +120,15 @@
         </div>
         <div class="transport__spacer"></div>
         <div class="transport__status" id="transport-status" role="status" aria-live="polite"></div>
+        <button class="btn btn--outline studio-btn" id="studio-btn" type="button" aria-label="Abrir el teclado" title="Crear un sonido con el teclado">
+          <svg class="i" aria-hidden="true"><use href="#i-keys"/></svg>
+          <span>Teclado</span>
+        </button>
         <button class="btn btn--outline surprise-btn" id="surprise-btn" type="button" aria-label="Sorpréndeme" title="Genera una base nueva al azar">
           <svg class="i" aria-hidden="true"><use href="#i-dice"/></svg>
           <span>Sorpréndeme</span>
         </button>
-        <button class="btn btn--dark mobile-only" id="library-toggle" type="button">
+        <button class="btn btn--dark mobile-only" id="library-toggle" type="button" aria-label="Sonidos" title="Biblioteca de sonidos">
           <svg class="i" aria-hidden="true"><use href="#i-music"/></svg>
           <span>Sonidos</span>
         </button>

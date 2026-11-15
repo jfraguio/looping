@@ -46,9 +46,25 @@ El proyecto incluye `.nojekyll` y todas las rutas son relativas, así que funcio
 
 **Sorpréndeme** crea una base completa y equilibrada al azar. Es la manera más rápida de escuchar el catálogo y luego desmontarlo.
 
+## Teclado y sonidos propios
+
+![Estudio de teclado](assets/preview-studio.png)
+
+El botón **Teclado**, junto a Sorpréndeme, abre un estudio para fabricar sonidos:
+
+- Elige una familia (**Teclas, Bajos, Batería, Texturas**) y un instrumento de los que forman el catálogo: Rhodes, Wurlitzer, piano de fieltro, guitarra, vibráfono, flauta, cuerdas, coro, sinth, contrabajo, sub 808, bajos, batería, scratch, voz o campanas.
+- Toca las dos octavas de teclas o los pads. La batería usa diez pads; el scratch uno grande.
+- **Acordes en Re menor** (Dm, Dm7, Dm9, Bb, Bbmaj7, Gm, Gm7, Am7, A7, C, F): al tocarlos se iluminan sus notas en el teclado y puedes sostenerlos para grabarlos.
+- Elige la duración del bucle (**1, 2, 4 u 8 tiempos**), pulsa **Grabar** y toca después del count-in. El bucle se repite para que escuches la toma antes de guardarla.
+- Ajusta nombre y sección (**Ritmos, Bajos, Armonías o Texturas**) y pulsa **Guardar sonido**. Aparece en la biblioteca de ese álbum, se puede colocar en la línea de tiempo y se comporta como cualquier otro sonido.
+- Los sonidos propios **viven en el álbum**: se guardan en `localStorage` y viajan dentro del `.looping.json`. Un álbum nuevo empieza solo con el catálogo original.
+
+En el teclado, `espacio` escucha o para el bucle y `R` empieza o para la grabación.
+
 ## Lo que incluye
 
 - **32 sonidos originales** en cuatro familias: 8 ritmos, 8 bajos, 10 armonías y 6 texturas. Todos comparten la tonalidad de Re menor y están nivelados para combinarse.
+- **Teclado para crear sonidos propios**: instrumentos del catálogo, acordes de Re menor, grabación en bucle, pads de batería y guardado por álbum.
 - **Línea de tiempo por capas** con bloques de 1, 2, 4 u 8 tiempos, duración dinámica, extensión del bucle, arrastre con imán, duplicado y deshacer.
 - **Escucha en directo**: renderiza el bucle en el navegador y hace crossfades de 45 ms al cambiar cualquier cosa. Puedes editar mientras suena.
 - **Exportación** MP3 320 kbps con etiquetas ID3 (título, álbum, artista, género) o WAV 44,1 kHz / 16 bits. Se repite el bucle hasta llenar la duración elegida y se aplica un fundido final.
@@ -69,6 +85,7 @@ El proyecto incluye `.nojekyll` y todas las rutas son relativas, así que funcio
 | Exportar | `⌘/Ctrl E` |
 | Guardar proyecto | `⌘/Ctrl S` |
 | Ayuda | `?` |
+| En el teclado: escuchar / grabar | `espacio` / `R` |
 
 ## El motor de sonido
 
@@ -90,6 +107,7 @@ index.html
 src/
   audio/
     catalog.js        los 32 sonidos y sus patrones
+    studio.js         instrumentos, acordes y sonidos propios
     instruments.js    batería, bajos, teclados, texturas
     dsp.js            filtros, ruido, reverb, cinta, medidas
     rng.js            azar determinista
@@ -100,6 +118,7 @@ src/
     wav.js            codificador WAV
   app/
     main.js           interfaz, estado y eventos
+    studio.js         estudio de teclado y grabación
     storage.js        álbumes, proyectos y localStorage
     recipes.js        bases de arranque y Sorpréndeme
     dom.js            utilidades y toasts

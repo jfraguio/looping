@@ -6,8 +6,9 @@
  */
 
 import {
-  CATEGORIES, CATEGORY_BY_ID, SOUNDS, SOUND_BY_ID, SOUND_GROUPS,
+  CATEGORIES, CATEGORY_BY_ID, SOUNDS, SOUND_BY_ID,
 } from '../audio/catalog.js';
+import { getActiveCustomSounds, registerAlbumCustomSounds } from '../audio/studio.js';
 import {
   displayUnitsFor, hasSound, loopUnitsFor, renderSound, soundsInTrack,
 } from '../audio/engine.js';
@@ -24,6 +25,7 @@ import {
   showToast, waitFrame, waveSvg,
 } from './dom.js';
 import { confirmDialog, isModalOpen, openModal, sectionHead } from './modals.js';
+import { openStudio } from './studio.js';
 
 /* ------------------------------------------------------------------ estado */
 
@@ -224,9 +226,25 @@ function renderTrackStrip() {
   if (active) requestAnimationFrame(() => active.scrollIntoView({ inline: 'nearest', block: 'nearest' }));
 }
 
+function albumSoundGroups() {
+  const customs = getActiveCustomSounds().slice().reverse();
+  return CATEGORIES.map((c) => ({
+    ...c,
+    sounds: [
+      ...customs.filter((s) => s.category === c.id),
+      ...SOUNDS.filter((s) => s.category === c.id),
+    ],
+  }));
+}
+
 function renderFilters() {
-  const counts = Object.fromEntries(CATEGORIES.map((c) => [c.id, SOUNDS.filter((s) => s.category === c.id).length]));
-  const defs = [{ id: 'all', name: 'Todo', color: 'var(--ink)', count: SOUNDS.length }, ...CATEGORIES.map((c) => ({ id: c.id, name: c.name, color: c.color, count: counts[c.id] }))];
+  const customs = getActiveCustomSounds();
+  const counts = Object.fromEntries(CATEGORIES.map((c) => [
+    c.id,
+    SOUNDS.filter((s) => s.category === c.id).length + customs.filter((s) => s.category === c.id).length,
+  ]));
+  const total = SOUNDS.length + customs.length;
+  const defs = [{ id: 'all', name: 'Todo', color: 'var(--ink)', count: total }, ...CATEGORIES.map((c) => ({ id: c.id, name: c.name, color: c.color, count: counts[c.id] }))];
   $('#filters').innerHTML = defs.map((f) => `
     <button class="filter ${app.filter === f.id ? 'is-active' : ''}" type="button" role="tab" aria-selected="${app.filter === f.id}" data-filter="${f.id}">
       <span class="filter__dot" style="--c:${f.color}"></span>
@@ -246,6 +264,7 @@ function soundCard(s) {
       <span class="sound-card__body">
         <span class="sound-card__top">
           <strong>${esc(s.name)}</strong>
+          ${s.custom ? '<span class="sound-card__own">tuyo</span>' : ''}
           <span class="beats">${s.beats}<span> tiempos</span></span>
         </span>
         <span class="sound-card__hint">${esc(s.hint)}</span>
@@ -258,7 +277,8 @@ function soundCard(s) {
 
 function renderLibrary({ resetScroll = false } = {}) {
   const top = resetScroll ? 0 : soundList.scrollTop;
-  const groups = app.filter === 'all' ? SOUND_GROUPS : SOUND_GROUPS.filter((g) => g.id === app.filter);
+  const allGroups = albumSoundGroups();
+  const groups = app.filter === 'all' ? allGroups : allGroups.filter((g) => g.id === app.filter);
   soundList.innerHTML = groups.map((cat) => `
     <section class="sound-group" aria-label="${esc(cat.name)}">
       <h3 class="sound-group__head" style="--c:${cat.color}">
@@ -269,7 +289,10 @@ function renderLibrary({ resetScroll = false } = {}) {
       <div class="sound-group__list">${cat.sounds.map(soundCard).join('')}</div>
     </section>`).join('');
   soundList.scrollTop = top;
-  $('#library-count').textContent = `${SOUNDS.length} sonidos · ${CATEGORIES.length} familias`;
+  const customCount = getActiveCustomSounds().length;
+  $('#library-count').textContent = customCount
+    ? `${SOUNDS.length + customCount} sonidos · ${customCount} ${customCount === 1 ? 'tuyo' : 'tuyos'}`
+    : `${SOUNDS.length} sonidos · ${CATEGORIES.length} familias`;
 }
 
 function renderPlacing() {
@@ -809,6 +832,7 @@ function switchTrack(id, { focusTitle = false } = {}) {
   resetPlayback();
   app.state.currentAlbumId = found.album.id;
   app.state.currentTrackId = id;
+  registerAlbumCustomSounds(found.album);
   app.selectedSound = null;
   app.selectedClip = null;
   app.history = [];
@@ -826,6 +850,7 @@ function switchAlbum(id) {
   resetPlayback();
   app.state.currentAlbumId = a.id;
   app.state.currentTrackId = a.tracks[0].id;
+  registerAlbumCustomSounds(a);
   app.selectedSound = null;
   app.selectedClip = null;
   app.history = [];
@@ -970,6 +995,7 @@ function bindProjects(api) {
   }));
   $('[data-add-album]', root)?.addEventListener('click', () => {
     newAlbumInState(app.state);
+    registerAlbumCustomSounds(album());
     app.selectedSound = null;
     app.selectedClip = null;
     app.history = [];
@@ -1011,6 +1037,7 @@ function bindProjects(api) {
     app.state.albums.push(copy);
     app.state.currentAlbumId = copy.id;
     app.state.currentTrackId = copy.tracks[0].id;
+    registerAlbumCustomSounds(copy);
     app.selectedSound = null;
     app.selectedClip = null;
     app.history = [];
@@ -1038,6 +1065,7 @@ function bindProjects(api) {
     app.state.albums = app.state.albums.filter((x) => x.id !== a.id);
     app.state.currentAlbumId = app.state.albums[0].id;
     app.state.currentTrackId = app.state.albums[0].tracks[0].id;
+    registerAlbumCustomSounds(currentAlbum(app.state));
     app.selectedSound = null;
     app.selectedClip = null;
     app.history = [];
@@ -1163,6 +1191,7 @@ async function handleImport(file) {
     app.state.albums.push(...albums);
     app.state.currentAlbumId = albums[0].id;
     app.state.currentTrackId = albums[0].tracks[0].id;
+    registerAlbumCustomSounds(albums[0]);
     resetPlayback();
     persistNow();
     renderAll({ resetScroll: true });
@@ -1380,6 +1409,10 @@ function openHelpModal() {
           <span class="help-step__num">3</span>
           <div><h3>Repite y exporta</h3><p>El bucle dura lo que la capa más larga, en compases. Cuando esté listo, expórtalo en MP3 con la duración que quieras o guarda el álbum como proyecto.</p></div>
         </div>
+        <div class="help-step">
+          <span class="help-step__num">4</span>
+          <div><h3>Fabrica tu propio sonido</h3><p>El botón <strong>Teclado</strong>, junto a Sorpréndeme, abre un estudio: elige instrumento, toca teclas o pads, escucha acordes de Re menor, graba un bucle y guárdalo en una sección. Aparecerá en la biblioteca de este álbum y viajará con el proyecto.</p></div>
+        </div>
       </div>
       <div class="help-shortcuts">
         <div><span>Reproducir / pausar</span><kbd>espacio</kbd></div>
@@ -1391,7 +1424,7 @@ function openHelpModal() {
         <div><span>Exportar</span><kbd>⌘/Ctrl E</kbd></div>
         <div><span>Guardar proyecto</span><kbd>⌘/Ctrl S</kbd></div>
       </div>
-      <p class="help-note"><strong>Si un sonido dura menos que el bucle</strong>, selecciónalo y pulsa <strong>Duplicar</strong> para repetirlo en el resto de la línea. <strong>Sorpréndeme</strong> ya crea una base completa al azar; es la forma más rápida de ver lo que puede hacer el catálogo.</p>`,
+      <p class="help-note"><strong>Si un sonido dura menos que el bucle</strong>, selecciónalo y pulsa <strong>Duplicar</strong> para repetirlo en el resto de la línea. En el teclado, <strong>espacio</strong> escucha el bucle y <strong>R</strong> empieza o para la grabación. Los sonidos propios se guardan en el proyecto del álbum; un álbum nuevo empieza solo con el catálogo.</p>`,
     footer: '<span class="spacer"></span><button class="btn btn--dark" type="button" data-close-help>Entendido</button>',
   });
   api.foot.querySelector('[data-close-help]').addEventListener('click', () => api.close());
@@ -1467,6 +1500,46 @@ function updatePlayhead() {
 
 /* ------------------------------------------------------------------ eventos */
 
+async function openKeyboardStudio() {
+  const t = track();
+  if (!t) return;
+  if (app.sheetOpen) closeLibrary();
+  if (player.playing) {
+    player.pause();
+    app.status = '';
+    renderPlayState();
+  }
+  player.stopPreview();
+  try {
+    await player.ensure();
+  } catch {
+    showToast('No se pudo activar el audio del teclado.', { error: true });
+    return;
+  }
+  openStudio({
+    player,
+    album: album(),
+    bpm: t.bpm,
+    onSaved: (recipe) => {
+      const a = album();
+      if (!Array.isArray(a.customSounds)) a.customSounds = [];
+      a.customSounds.push(recipe);
+      registerAlbumCustomSounds(a);
+      app.filter = recipe.category;
+      app.selectedSound = recipe.id;
+      app.selectedClip = null;
+      persist();
+      renderFilters();
+      renderLibrary({ resetScroll: true });
+      renderPlacing();
+      renderSelection();
+    },
+  }).catch((err) => {
+    console.error(err);
+    showToast('No se pudo abrir el teclado.', { error: true });
+  });
+}
+
 function bindEvents() {
   // Primer gesto: desbloquea el audio.
   let unlocked = false;
@@ -1528,6 +1601,7 @@ function bindEvents() {
   $('#clear-btn').addEventListener('click', clearTrackAction);
   $('#undo-btn').addEventListener('click', undo);
   $('#redo-btn').addEventListener('click', redo);
+  $('#studio-btn').addEventListener('click', () => { openKeyboardStudio(); });
   $('#surprise-btn').addEventListener('click', () => { surprise().catch(() => {}); });
   $('#empty-surprise').addEventListener('click', () => { surprise().catch(() => {}); });
   $('#empty-library').addEventListener('click', openLibrary);
@@ -1882,6 +1956,7 @@ async function boot() {
   if (!app.state.currentTrackId || !currentTrack(app.state)) {
     app.state.currentTrackId = currentAlbum(app.state).tracks[0].id;
   }
+  registerAlbumCustomSounds(currentAlbum(app.state));
 
   renderFilters();
   renderLibrary();

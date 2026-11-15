@@ -54,7 +54,17 @@ export function debounce(fn, ms = 80) {
   return wrapped;
 }
 
-export const waitFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
+export const waitFrame = () => new Promise((resolve) => {
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    resolve();
+  };
+  const timer = setTimeout(finish, 30);
+  requestAnimationFrame(finish);
+});
 
 export function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
