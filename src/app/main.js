@@ -1424,7 +1424,7 @@ function openHelpModal() {
         <div><span>Exportar</span><kbd>⌘/Ctrl E</kbd></div>
         <div><span>Guardar proyecto</span><kbd>⌘/Ctrl S</kbd></div>
       </div>
-      <p class="help-note"><strong>Si un sonido dura menos que el bucle</strong>, selecciónalo y pulsa <strong>Duplicar</strong> para repetirlo en el resto de la línea. En el teclado, las letras <strong>Z–M</strong> y <strong>Q–U</strong> tocan las dos octavas, los números <strong>1–0</strong> tocan los pads, <strong>espacio</strong> escucha el bucle y <strong>⇧R</strong> empieza o para la grabación. Los sonidos propios se guardan en el proyecto del álbum; un álbum nuevo empieza solo con el catálogo.</p>`,
+      <p class="help-note"><strong>Si un sonido dura menos que el bucle</strong>, selecciónalo y pulsa <strong>Duplicar</strong> para repetirlo en el resto de la línea. En el teclado, las letras <strong>Z–M</strong> y <strong>Q–U</strong> tocan las dos octavas, los números <strong>1–0</strong> tocan los pads, <strong>espacio</strong> escucha el bucle y <strong>⇧R</strong> empieza o para la grabación. Al grabar no hay cuenta atrás: la primera tecla marca el inicio y suena en el tiempo 0; si quieres empezar con silencio, pulsa cualquier tecla que no toque nada, como <strong>espacio</strong>. Los sonidos propios se guardan en el proyecto del álbum; un álbum nuevo empieza solo con el catálogo.</p>`,
     footer: '<span class="spacer"></span><button class="btn btn--dark" type="button" data-close-help>Entendido</button>',
   });
   api.foot.querySelector('[data-close-help]').addEventListener('click', () => api.close());

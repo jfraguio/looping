@@ -87,7 +87,7 @@ export async function openStudio({ player, album, bpm, onSaved }) {
     click: true,
     playing: false,
     recording: false,
-    countInUntil: 0,
+    armed: false,
     loopStart: 0,
     recordStart: 0,
     nextLoop: 0,
@@ -279,7 +279,9 @@ export async function openStudio({ player, album, bpm, onSaved }) {
 
   function startKey(midi, pointerId, el) {
     if (state.pointers.has(pointerId)) endPointer(pointerId);
-    startVoice(midi, pointerId, { keyEl: el, startedAt: ctx.currentTime, velocity: 0.86 });
+    const startedAt = ctx.currentTime;
+    beginRecordNow(startedAt);
+    startVoice(midi, pointerId, { keyEl: el, startedAt, velocity: 0.86 });
   }
 
   function startChord(chord, pointerId, el) {
@@ -289,6 +291,7 @@ export async function openStudio({ player, album, bpm, onSaved }) {
     updateKeyHighlights();
     const midis = chordMidis(chord, state.octaveStart);
     const startedAt = ctx.currentTime;
+    beginRecordNow(startedAt);
     for (const midi of midis) {
       const keyEl = $(`.studio-key[data-midi="${midi}"]`, state.body);
       const voice = startVoice(midi, pointerId, { keyEl, startedAt, velocity: 0.78 });
@@ -305,10 +308,12 @@ export async function openStudio({ player, album, bpm, onSaved }) {
   function playPad(padId, velocity = 0.9) {
     const pad = inst().pads?.find((p) => p.id === padId);
     if (!pad) return;
+    const hitAt = ctx.currentTime;
+    beginRecordNow(hitAt);
     const audio = getAudioBuffer(state.instrumentId, { pad: padId });
     playBuffer(audio, velocity);
-    if (state.recording && ctx.currentTime >= state.recordStart) {
-      const beat = ((ctx.currentTime - state.recordStart) * state.bpm) / 60;
+    if (state.recording && hitAt >= state.recordStart) {
+      const beat = ((hitAt - state.recordStart) * state.bpm) / 60;
       addHit({ pad: padId, start: quantizeStart(beat, state.length), velocity });
     }
     const el = $(`.studio-pad[data-pad="${padId}"]`, state.body);
@@ -381,37 +386,53 @@ export async function openStudio({ player, album, bpm, onSaved }) {
     }
   }
 
-  function startLoop(record = false) {
+  function startLoop() {
     stopAllSources();
     endAllPointers();
-    state.playing = false;
-    state.recording = false;
     clearInterval(state.scheduleTimer);
-    const beatSec = 60 / state.bpm;
-    const loopDur = state.length * beatSec;
     const now = ctx.currentTime;
-    const count = record ? 4 : 0;
-    const startAt = now + 0.12 + count * beatSec;
+    const startAt = now + 0.12;
     state.loopStart = startAt;
-    state.recordStart = startAt;
-    state.countInUntil = record ? startAt : 0;
-    state.nextLoop = 0;
+    state.recordStart = 0;
+    state.armed = false;
+    state.recording = false;
     state.playing = true;
-    state.recording = !!record;
-    if (record) {
-      for (let i = 0; i < 4; i++) scheduleClick(now + 0.12 + i * beatSec, i === 0);
-    }
+    state.nextLoop = 0;
     scheduleLoop(0);
     state.nextLoop = 1;
     state.scheduleTimer = setInterval(scheduleAhead, 180);
     updateTransportLive();
   }
 
+  /**
+   * Arranca el bucle en el instante de la primera pulsación. No hay cuenta
+   * atrás: la primera nota queda en el tiempo 0 y lo que suene antes de tocar
+   * es silencio, no un compás de espera.
+   */
+  function beginRecordNow(startAt = 0) {
+    if (!state.armed) return 0;
+    const at = startAt || ctx.currentTime;
+    stopAllSources();
+    endAllPointers();
+    clearInterval(state.scheduleTimer);
+    state.loopStart = at;
+    state.recordStart = at;
+    state.nextLoop = 0;
+    state.armed = false;
+    state.playing = true;
+    state.recording = true;
+    scheduleLoop(0);
+    state.nextLoop = 1;
+    state.scheduleTimer = setInterval(scheduleAhead, 180);
+    updateTransportLive();
+    return at;
+  }
+
   function stopLoop({ finalize = true } = {}) {
     if (state.recording && finalize) finishRecording();
     state.playing = false;
     state.recording = false;
-    state.countInUntil = 0;
+    state.armed = false;
     clearInterval(state.scheduleTimer);
     state.scheduleTimer = 0;
     stopAllSources();
@@ -421,21 +442,30 @@ export async function openStudio({ player, album, bpm, onSaved }) {
   }
 
   function togglePlay() {
+    if (state.armed) state.armed = false;
     if (state.playing) stopLoop();
-    else startLoop(false);
+    else startLoop();
+  }
+
+  function armRecording() {
+    if (state.playing || state.recording) stopLoop({ finalize: true });
+    state.armed = true;
+    updateTransportLive();
+    showToast('La primera tecla marca el inicio. Si quieres empezar con silencio, pulsa espacio.');
   }
 
   function toggleRecord() {
+    if (state.armed) {
+      state.armed = false;
+      updateTransportLive();
+      return;
+    }
     if (state.recording) {
       finishRecording();
       updateTransportLive();
       return;
     }
-    if (!hasEvents()) {
-      // Una toma vacía puede grabarse igualmente: el usuario puede empezar
-      // por un golpe o una nota.
-    }
-    startLoop(true);
+    armRecording();
   }
 
   function clearTake() {
@@ -593,7 +623,7 @@ export async function openStudio({ player, album, bpm, onSaved }) {
   function buildBody() {
     return `
       <div class="studio">
-        <p class="studio-lede">Toca con el ratón, el dedo o el teclado y graba un bucle. Lo que guardes queda en la biblioteca de <strong>${esc(state.album.name || 'este álbum')}</strong>.</p>
+        <p class="studio-lede">Toca con el ratón, el dedo o el teclado y graba un bucle: la primera tecla marca el inicio. Lo que guardes queda en la biblioteca de <strong>${esc(state.album.name || 'este álbum')}</strong>.</p>
         <div class="studio-families" role="tablist" aria-label="Familias de instrumentos">${familyTabsHtml()}</div>
         <div class="studio-instruments" role="group" aria-label="Instrumentos">${instrumentsHtml()}</div>
         ${transportHtml()}
@@ -652,7 +682,6 @@ export async function openStudio({ player, album, bpm, onSaved }) {
         <div class="studio-loop__empty">${isPads ? 'Graba un golpe para verlo aquí.' : 'Graba una nota o un acorde para verlo aquí.'}</div>
         <div class="studio-loop__grid studio-loop__grid--empty" style="--steps:${steps};--beats:${state.length};height:${contentH}px">
           <div class="studio-playhead" id="studio-playhead" hidden></div>
-          <div class="studio-countin" id="studio-countin" hidden></div>
         </div>`;
       return;
     }
@@ -681,7 +710,6 @@ export async function openStudio({ player, album, bpm, onSaved }) {
         <div class="studio-loop__grid" style="--steps:${steps};--beats:${state.length};height:${contentH}px">
           ${blocks}
           <div class="studio-playhead" id="studio-playhead" hidden></div>
-          <div class="studio-countin" id="studio-countin" hidden></div>
         </div>
       </div>`;
     updatePlayheadView();
@@ -689,28 +717,14 @@ export async function openStudio({ player, album, bpm, onSaved }) {
 
   function updatePlayheadView() {
     const ph = $('#studio-playhead', state.body);
-    const count = $('#studio-countin', state.body);
     if (!ph) return;
     if (!state.playing) {
       ph.hidden = true;
-      if (count) count.hidden = true;
       return;
     }
     const now = ctx.currentTime;
-    if (now < state.loopStart) {
-      ph.hidden = false;
-      ph.style.left = '0%';
-      if (count) {
-        count.hidden = !state.recording;
-        if (state.recording) {
-          const remaining = Math.max(1, Math.ceil((state.loopStart - now) * (state.bpm / 60)));
-          count.textContent = String(Math.min(4, remaining));
-        }
-      }
-      return;
-    }
-    if (count) count.hidden = true;
-    const pos = (((now - state.loopStart) * state.bpm) / 60) % state.length;
+    const elapsed = Math.max(0, now - state.loopStart);
+    const pos = ((elapsed * state.bpm) / 60) % state.length;
     ph.hidden = false;
     ph.style.left = `${(pos / state.length) * 100}%`;
   }
@@ -743,8 +757,11 @@ export async function openStudio({ player, album, bpm, onSaved }) {
     }
     if (rec) {
       rec.classList.toggle('is-recording', state.recording);
-      rec.setAttribute('aria-label', state.recording ? 'Dejar de grabar' : 'Grabar un bucle');
-      rec.innerHTML = `<span class="studio-record__dot" aria-hidden="true"></span><span>${state.recording ? 'Grabando' : 'Grabar'}</span>`;
+      rec.classList.toggle('is-armed', state.armed);
+      const label = state.recording ? 'Dejar de grabar' : state.armed ? 'Cancelar la grabación' : 'Grabar un bucle';
+      const text = state.recording ? 'Grabando' : state.armed ? 'Esperando…' : 'Grabar';
+      rec.setAttribute('aria-label', label);
+      rec.innerHTML = `<span class="studio-record__dot" aria-hidden="true"></span><span>${text}</span>`;
     }
     if (clear) clear.disabled = !hasEvents();
     $$('[data-len]', state.body).forEach((b) => {
@@ -764,8 +781,8 @@ export async function openStudio({ player, album, bpm, onSaved }) {
     const el = $('#studio-status', state.body);
     if (!el) return;
     let text = '';
-    if (state.recording && ctx.currentTime < state.loopStart) {
-      text = 'Entrando…';
+    if (state.armed) {
+      text = 'Toca una tecla o un pad para empezar';
     } else if (state.recording) {
       text = `Grabando · ${activeEvents()} ${topic()}`;
     } else if (state.playing) {
@@ -1080,6 +1097,18 @@ export async function openStudio({ player, album, bpm, onSaved }) {
       toggleRecord();
       return;
     }
+    if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+    // Armado: cualquier tecla arranca el reloj. Si además toca una nota o un
+    // pad, el propio instrumento se encarga de empezar y sonar.
+    if (state.armed) {
+      if (key === 'tab') return;
+      const mapped = inst().kind === 'notes' ? OFFSET_BY_KEY.has(key) : PAD_INDEX_BY_KEY.has(key);
+      if (!mapped) {
+        e.preventDefault();
+        beginRecordNow();
+        return;
+      }
+    }
     const onButton = e.target.closest?.('button');
     if (e.code === 'Space') {
       if (onButton) return;
@@ -1087,7 +1116,6 @@ export async function openStudio({ player, album, bpm, onSaved }) {
       togglePlay();
       return;
     }
-    if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
     if (inst().kind === 'notes') {
       const offset = OFFSET_BY_KEY.get(key);
       if (offset === undefined) return;
@@ -1124,12 +1152,6 @@ export async function openStudio({ player, album, bpm, onSaved }) {
     if (!state.alive) return;
     updatePlayheadView();
     updateStatus();
-    // En grabación, el contador de compás se actualiza con el reloj.
-    if (state.recording && ctx.currentTime < state.loopStart) {
-      const remaining = Math.max(1, Math.ceil((state.loopStart - ctx.currentTime) * (state.bpm / 60)));
-      const count = $('#studio-countin', state.body);
-      if (count) count.textContent = String(Math.min(4, remaining));
-    }
     state.raf = requestAnimationFrame(animate);
   }
 

@@ -56,11 +56,11 @@ El botón **Teclado**, junto a Sorpréndeme, abre un estudio para fabricar sonid
 - Toca las dos octavas de teclas o los pads. La batería usa diez pads; el scratch uno grande.
 - También funciona con el **teclado del ordenador**: `Z S X D C V G B H N J M` para la primera octava y `Q 2 W 3 E R 5 T 6 Y 7 U` para la segunda. Las letras aparecen sobre las teclas. En los pads, las teclas `1–0`.
 - **Acordes en Re menor** (Dm, Dm7, Dm9, Bb, Bbmaj7, Gm, Gm7, Am7, A7, C, F): al tocarlos se iluminan sus notas en el teclado y puedes sostenerlos para grabarlos.
-- Elige la duración del bucle (**1, 2, 4 u 8 tiempos**), pulsa **Grabar** y toca después del count-in. El bucle se repite para que escuches la toma antes de guardarla.
+- Elige la duración del bucle (**1, 2, 4 u 8 tiempos**), pulsa **Grabar** y toca cuando quieras. No hay cuenta atrás: la primera tecla (o pad) marca el inicio y queda en el tiempo 0; si quieres empezar con silencio, pulsa cualquier tecla no musical, como `espacio`, y el reloj arrancará igual. El bucle se repite para que escuches la toma antes de guardarla.
 - Ajusta nombre y sección (**Ritmos, Bajos, Armonías o Texturas**) y pulsa **Guardar sonido**. Aparece en la biblioteca de ese álbum, se puede colocar en la línea de tiempo y se comporta como cualquier otro sonido.
 - Los sonidos propios **viven en el álbum**: se guardan en `localStorage` y viajan dentro del `.looping.json`. Un álbum nuevo empieza solo con el catálogo original.
 
-En el teclado, las letras `Z–M` y `Q–U` tocan las dos octavas y `1–0` los pads. `espacio` escucha o para el bucle y `⇧R` empieza o para la grabación.
+En el teclado, las letras `Z–M` y `Q–U` tocan las dos octavas y `1–0` los pads. `espacio` escucha o para el bucle y `⇧R` empieza o para la grabación; al esperar la primera tecla, cualquier tecla arranca el reloj.
 
 ## Lo que incluye
 
