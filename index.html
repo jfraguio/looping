@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#171512" />
+    <meta name="description" content="Looping: máquina de bases de hip hop. Combina ritmos, bajos, armonías y texturas en capas. Escucha en directo y exporta en MP3." />
+    <title>Looping · máquina de bases de hip hop</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="assets/fonts/archivo-black-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/fonts/space-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="src/styles/main.css" />
+  </head>
+  <body>
+    <svg class="sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.4v13.2a.9.9 0 0 0 1.36.77l10.5-6.6a.9.9 0 0 0 0-1.54L9.36 4.63A.9.9 0 0 0 8 5.4Z" fill="currentColor" stroke="none"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6.4" y="5" width="4.1" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="13.5" y="5" width="4.1" height="14" rx="1" fill="currentColor" stroke="none"/></symbol>
+      <symbol id="i-restart" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4.6h4.6"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+      <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4.5 9.5 9 5"/><path d="M4.5 9.5H15a4.5 4.5 0 0 1 0 9h-3"/></symbol>
+      <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 4.5-4.5L15 5"/><path d="M19.5 9.5H9a4.5 4.5 0 0 0 0 9h3"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15"/><path d="M9.5 7V5.4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V7"/><path d="m6.8 7 .7 11.4a1.7 1.7 0 0 0 1.7 1.6h5.6a1.7 1.7 0 0 0 1.7-1.6L17.2 7"/><path d="M10 10.5v6M14 10.5v6"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7.5 11 4.5 4.5 4.5-4.5"/><path d="M5 19.5h14"/></symbol>
+      <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5v-10Z"/></symbol>
+      <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2.1-2.4 3.8"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/></symbol>
+      <symbol id="i-dice" viewBox="0 0 24 24"><path d="m12 3 1.5 5.3L19 10l-5.5 1.7L12 17l-1.5-5.3L5 10l5.5-1.7L12 3Z"/><path d="m18.5 15 .7 2.3L21.5 18l-2.3.7-.7 2.3-.7-2.3L15.5 18l2.3-.7.7-2.3Z"/></symbol>
+      <symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18 6.5a7.8 7.8 0 0 1 0 11"/></symbol>
+      <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z"/><path d="m16 10 4 4M20 10l-4 4"/></symbol>
+      <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4.5 13v-1a7.5 7.5 0 0 1 15 0v1"/><path d="M4.5 13.5h2.2a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1v-5ZM19.5 13.5h-2.2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1.2a1 1 0 0 0 1-1v-5Z"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+      <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="m6 9.5 6 6 6-6"/></symbol>
+      <symbol id="i-chev-up" viewBox="0 0 24 24"><path d="m6 14.5 6-6 6 6"/></symbol>
+      <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></symbol>
+      <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+      <symbol id="i-grip" viewBox="0 0 24 24"><path d="M9 7h.01M15 7h.01M9 12h.01M15 12h.01M9 17h.01M15 17h.01" stroke-width="3" stroke-linecap="round"/></symbol>
+      <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 4 8 4.5-8 4.5-8-4.5L12 4Z"/><path d="m4 12.5 8 4.5 8-4.5"/><path d="m4 16.5 8 4.5 8-4.5"/></symbol>
+      <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18.5V6l10-2v12.5"/><circle cx="6.5" cy="18.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 21 20H3L12 4Z"/><path d="M12 10v4.5"/><circle cx="12" cy="17.4" r="1" fill="currentColor" stroke="none"/></symbol>
+      <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5"/><path d="m7.5 9 4.5-4.5L16.5 9"/><path d="M5 19.5h14"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="1.5"/><path d="M15.5 8.5V5.5a1.5 1.5 0 0 0-1.5-1.5H5.5A1.5 1.5 0 0 0 4 5.5V14a1.5 1.5 0 0 0 1.5 1.5h3"/></symbol>
+      <symbol id="i-pencil" viewBox="0 0 24 24"><path d="m4 20 4.6-1.1L19 8.5a2.1 2.1 0 0 0-3-3L5.6 15.9 4 20Z"/><path d="m14.8 6.7 3 3"/></symbol>
+    </svg>
+
+    <div class="boot" id="boot">
+      <div class="boot__mark"><span class="vinyl"></span></div>
+      <div class="boot__title">LOOPING</div>
+      <div class="boot__sub" id="boot-sub">Afinando el estudio…</div>
+      <div class="boot__bar"><span id="boot-bar"></span></div>
+      <div class="boot__foot">Bases de hip hop · en tu navegador</div>
+    </div>
+
+    <div class="app" id="app" hidden>
+      <header class="topbar">
+        <div class="brand" title="Looping">
+          <span class="brand__mark" aria-hidden="true"><span></span></span>
+          <span class="brand__text">
+            <span class="brand__name">LOOPING</span>
+            <span class="brand__sub">hip hop loop machine</span>
+          </span>
+        </div>
+        <button class="album-pill" id="album-pill" type="button" title="Álbum y temas">
+          <svg class="i" aria-hidden="true"><use href="#i-folder"/></svg>
+          <span class="album-pill__name" id="album-name">Sin título</span>
+          <span class="album-pill__count" id="album-count">1 tema</span>
+          <svg class="i i--mini" aria-hidden="true"><use href="#i-chev-down"/></svg>
+        </button>
+        <div class="topbar__actions">
+          <button class="btn btn--ghost topbar__projects" id="projects-btn" type="button" aria-label="Proyectos" title="Proyectos y álbumes">
+            <svg class="i" aria-hidden="true"><use href="#i-folder"/></svg>
+            <span>Proyectos</span>
+          </button>
+          <button class="icon-btn topbar__help" id="help-btn" type="button" aria-label="Cómo funciona" title="Cómo funciona (?)">
+            <svg class="i" aria-hidden="true"><use href="#i-help"/></svg>
+          </button>
+          <button class="btn btn--primary" id="export-btn" type="button" aria-label="Exportar" title="Exportar el tema (⌘/Ctrl+E)">
+            <svg class="i" aria-hidden="true"><use href="#i-download"/></svg>
+            <span>Exportar</span>
+          </button>
+        </div>
+      </header>
+
+      <nav class="trackstrip" id="trackstrip" aria-label="Temas del álbum"></nav>
+
+      <section class="transport" aria-label="Reproductor">
+        <button class="play-btn" id="play-btn" type="button" aria-label="Reproducir" title="Reproducir / pausar (espacio)">
+          <span class="play-btn__ring" aria-hidden="true"></span>
+          <svg class="i i--play" aria-hidden="true"><use href="#i-play"/></svg>
+          <svg class="i i--pause" aria-hidden="true"><use href="#i-pause"/></svg>
+        </button>
+        <button class="icon-btn icon-btn--square" id="restart-btn" type="button" aria-label="Volver al inicio del bucle" title="Volver al inicio">
+          <svg class="i" aria-hidden="true"><use href="#i-restart"/></svg>
+        </button>
+        <div class="bpm" title="Velocidad del bucle">
+          <button class="bpm__step" id="bpm-down" type="button" aria-label="Bajar tempo">−</button>
+          <div class="bpm__value">
+            <input id="bpm-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Tempo en BPM" />
+            <span class="bpm__label">bpm</span>
+          </div>
+          <button class="bpm__step" id="bpm-up" type="button" aria-label="Subir tempo">+</button>
+        </div>
+        <div class="loop-info" id="loop-info">
+          <span class="loop-info__bars" id="loop-bars">2 compases</span>
+          <span class="loop-info__time" id="loop-time">00:00 / 00:00</span>
+        </div>
+        <div class="transport__spacer"></div>
+        <div class="transport__status" id="transport-status" role="status" aria-live="polite"></div>
+        <button class="btn btn--outline surprise-btn" id="surprise-btn" type="button" aria-label="Sorpréndeme" title="Genera una base nueva al azar">
+          <svg class="i" aria-hidden="true"><use href="#i-dice"/></svg>
+          <span>Sorpréndeme</span>
+        </button>
+        <button class="btn btn--dark mobile-only" id="library-toggle" type="button">
+          <svg class="i" aria-hidden="true"><use href="#i-music"/></svg>
+          <span>Sonidos</span>
+        </button>
+      </section>
+
+      <main class="workspace">
+        <aside class="library" id="library" aria-label="Biblioteca de sonidos">
+          <header class="library__head">
+            <div>
+              <h2 class="library__title">Sonidos</h2>
+              <p class="library__sub">Toca uno y colócalo en la línea</p>
+            </div>
+            <button class="icon-btn library__close" id="library-close" type="button" aria-label="Cerrar sonidos">
+              <svg class="i" aria-hidden="true"><use href="#i-close"/></svg>
+            </button>
+          </header>
+          <div class="filters" id="filters" role="tablist" aria-label="Filtrar por familia"></div>
+          <div class="sound-list" id="sound-list"></div>
+          <footer class="library__foot">
+            <span class="library__count" id="library-count"></span>
+            <span class="library__tip">Todo afinado en Re menor</span>
+          </footer>
+        </aside>
+
+        <section class="timeline-panel" id="timeline-panel" aria-label="Línea de tiempo">
+          <header class="timeline-head">
+            <div class="track-title">
+              <label class="sr-only" for="track-title">Nombre del tema</label>
+              <input id="track-title" type="text" maxlength="80" autocomplete="off" spellcheck="false" />
+              <span class="track-meta" id="track-meta"></span>
+            </div>
+            <div class="timeline-actions">
+              <button class="icon-btn" id="undo-btn" type="button" aria-label="Deshacer" title="Deshacer (⌘/Ctrl+Z)">
+                <svg class="i" aria-hidden="true"><use href="#i-undo"/></svg>
+              </button>
+              <button class="icon-btn" id="redo-btn" type="button" aria-label="Rehacer" title="Rehacer (⇧⌘/Ctrl+Z)">
+                <svg class="i" aria-hidden="true"><use href="#i-redo"/></svg>
+              </button>
+              <button class="icon-btn" id="clear-btn" type="button" aria-label="Vaciar el tema" title="Vaciar el tema">
+                <svg class="i" aria-hidden="true"><use href="#i-trash"/></svg>
+              </button>
+            </div>
+          </header>
+
+          <div class="placing-bar" id="placing-bar" hidden>
+            <span class="placing-bar__dot" id="placing-dot" aria-hidden="true"></span>
+            <span class="placing-bar__text" id="placing-text">Colocando…</span>
+            <span class="placing-bar__hint">Toca una capa en el tiempo que quieras</span>
+            <button class="btn btn--tiny btn--dark" id="placing-done" type="button">Listo</button>
+          </div>
+
+          <div class="timeline-viewport" id="timeline-viewport">
+            <div class="timeline-scroll" id="timeline-scroll">
+              <div class="timeline-content" id="timeline-content">
+                <div class="ruler" id="ruler">
+                  <div class="ruler__gutter"><span>compás</span></div>
+                  <div class="ruler__track" id="ruler-track"></div>
+                </div>
+                <div class="layers" id="layers"></div>
+                <button class="add-layer" id="add-layer" type="button">
+                  <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>
+                  <span>Añadir capa</span>
+                </button>
+              </div>
+            </div>
+            <div class="playhead" id="playhead" aria-hidden="true"><span class="playhead__head"></span></div>
+            <div class="empty-state" id="empty-state" hidden>
+              <div class="empty-state__inner">
+                <span class="empty-state__kicker">El estudio está en silencio</span>
+                <strong>Empieza con un ritmo</strong>
+                <p>Elige un sonido en la biblioteca, o deja que Looping te sorprenda.</p>
+                <div class="empty-state__actions">
+                  <button class="btn btn--primary" id="empty-surprise" type="button">Sorpréndeme</button>
+                  <button class="btn btn--outline" id="empty-library" type="button">Ver sonidos</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <footer class="timeline-foot">
+            <div class="selection" id="selection-info">Nada seleccionado</div>
+            <div class="timeline-hint">
+              <span class="timeline-hint__desktop">Arrastra un bloque para moverlo · <kbd>espacio</kbd> reproduce · <kbd>supr</kbd> borra</span>
+              <span class="timeline-hint__touch">Toca un sonido y luego una capa · arrastra un bloque para mover</span>
+            </div>
+          </footer>
+        </section>
+      </main>
+    </div>
+
+    <div class="sheet-scrim" id="sheet-scrim" hidden></div>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <div class="modal-host" id="modal-host" hidden>
+      <div class="modal-scrim" id="modal-scrim"></div>
+      <section class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
+        <header class="modal__head">
+          <h2 class="modal__title" id="modal-title"></h2>
+          <button class="icon-btn" id="modal-close" type="button" aria-label="Cerrar">
+            <svg class="i" aria-hidden="true"><use href="#i-close"/></svg>
+          </button>
+        </header>
+        <div class="modal__body" id="modal-body"></div>
+        <footer class="modal__foot" id="modal-foot"></footer>
+      </section>
+    </div>
+
+    <input id="import-file" type="file" accept=".json,application/json" hidden />
+
+    <noscript>
+      <div class="noscript">Looping necesita JavaScript para sonar. Actívalo y vuelve a cargar la página.</div>
+    </noscript>
+
+    <script type="module" src="src/app/main.js"></script>
+  </body>
+</html>

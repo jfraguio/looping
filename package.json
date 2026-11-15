@@ -1,0 +1,14 @@
+{
+  "name": "looping",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Máquina de bases de hip hop en el navegador: capas, bucles y exportación MP3.",
+  "scripts": {
+    "start": "node scripts/serve.mjs 4174",
+    "serve": "node scripts/serve.mjs 4174",
+    "render:catalog": "node scripts/render-catalog.mjs 84",
+    "render:recipes": "node scripts/render-recipes.mjs",
+    "test:drums": "node scripts/test-drums.mjs"
+  }
+}
